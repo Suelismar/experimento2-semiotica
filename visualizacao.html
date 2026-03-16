@@ -15,16 +15,23 @@
         }
 
         body, html { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--texto-principal); display: flex; justify-content: center; min-height: 100vh; box-sizing: border-box; padding: 40px 20px; }
-        .dashboard { width: 100%; max-width: 1000px; display: none; } /* Escondido até carregar os dados */
+        .dashboard { width: 100%; max-width: 1000px; display: none; }
         
-        /* Loading Screen */
         #loading { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; width: 100%; color: var(--texto-secundario); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
         .spinner { width: 40px; height: 40px; border: 4px solid var(--borda); border-top: 4px solid #fafafa; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 30px; border-bottom: 1px solid var(--borda); padding-bottom: 15px; }
         h1 { font-size: 1.5rem; font-weight: 600; margin: 0; letter-spacing: -0.02em; }
-        .badge-n { color: var(--texto-secundario); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+        
+        /* Badge Interativo */
+        .badge-n { 
+            color: var(--texto-secundario); font-size: 0.85rem; font-weight: 600; 
+            text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer;
+            padding: 4px 12px; border: 1px solid var(--borda); border-radius: 20px;
+            transition: all 0.2s;
+        }
+        .badge-n:hover { background: #27272a; color: #fafafa; border-color: #52525b; }
 
         .controls-container { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; background: var(--bg-panel); padding: 20px; border-radius: 6px; border: 1px solid var(--borda); margin-bottom: 30px; }
         .control-group { display: flex; flex-direction: column; gap: 10px; }
@@ -55,6 +62,30 @@
         
         .grafico-wrapper { position: relative; height: 500px; width: 100%; border: 1px solid var(--borda); border-radius: 6px; padding: 20px; box-sizing: border-box; background: var(--bg-panel); }
         .rodape-legenda { text-align: center; font-size: 0.75rem; color: var(--texto-secundario); margin-top: 20px; letter-spacing: 0.05em; text-transform: uppercase; }
+
+        /* ── MODAL SOCIOLINGUÍSTICO ── */
+        .modal { 
+            display: none; position: fixed; inset: 0; 
+            background: rgba(9, 9, 11, 0.95); backdrop-filter: blur(8px);
+            z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-content {
+            background: var(--bg-panel); width: 100%; max-width: 1100px; 
+            max-height: 90vh; border-radius: 12px; border: 1px solid var(--borda);
+            padding: 40px; overflow-y: auto; position: relative;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .btn-close { background: none; border: none; color: var(--texto-secundario); font-size: 2rem; cursor: pointer; }
+
+        .stats-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 25px; margin-top: 20px;
+        }
+        .stat-card { 
+            background: var(--bg-body); padding: 20px; border-radius: 8px; 
+            border: 1px solid var(--borda); height: 280px; 
+        }
+        .stat-card h3 { font-size: 0.75rem; color: var(--texto-secundario); text-transform: uppercase; margin-bottom: 15px; letter-spacing: 0.1em; }
     </style>
 </head>
 <body>
@@ -64,10 +95,31 @@
         <div id="loading-text">Conectando ao Banco de Dados...</div>
     </div>
 
-    <div class="dashboard" id="main-dashboard">
-        <div class="header">
-            <h1>Análise de Magnitude</h1>
-            <span class="badge-n" id="badgeTotal">Dados Reais (N=0)</span>
+    <div id="modalStats" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2 style="margin:0;">Perfil Sociolinguístico</h2>
+                    <p style="color:var(--texto-secundario); font-size:0.9rem; margin:5px 0 0 0;">Análise demográfica dos participantes únicos.</p>
+                </div>
+                <button class="btn-close" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card"><canvas id="chartIdade"></canvas></div>
+                <div class="stat-card"><canvas id="chartGenero"></canvas></div>
+                <div class="stat-card"><canvas id="chartEscola"></canvas></div>
+                <div class="stat-card"><canvas id="chartLado"></canvas></div>
+                <div class="stat-card" style="grid-column: span 1;"><canvas id="chartEstado"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header">
+            <a href="index.html" style="text-decoration: none; color: inherit; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
+                <h1>Teste de Estimativa de Magnitude</h1>
+            </a>
+            <span class="badge-n" id="badgeTotal" onclick="openModal()">Dados Reais (N=0)</span>
         </div>
 
         <div class="controls-container">
@@ -92,7 +144,7 @@
                     <th id="col1_label">Especialistas Nativos</th>
                     <th id="col2_label">Especialistas Bilíngues</th>
                     <th id="col3_label">Leigos Iniciantes</th>
-                    <th id="col4_label" style="display:table-cell;">Leigos Absolutos</th>
+                    <th id="col4_label">Leigos Absolutos</th>
                 </tr>
             </thead>
             <tbody>
@@ -101,7 +153,7 @@
                     <td id="val1">0.0</td>
                     <td id="val2">0.0</td>
                     <td id="val3">0.0</td>
-                    <td id="val4" style="display:table-cell;">0.0</td>
+                    <td id="val4">0.0</td>
                 </tr>
             </tbody>
         </table>
@@ -123,13 +175,14 @@
     </div>
 
     <script>
-        // ── 1. CONFIGURAÇÃO DE ACESSO AOS DADOS ──
-        // SUBSTITUA PELA SUA NOVA URL DO GOOGLE APPS SCRIPT
         const API_URL = "https://script.google.com/macros/s/AKfycbyAqlHbm4p8K7rme7cz_5RQjxc21GeQ3EsGXYL_mB7v7S5qrUi57YspXMuiT-M1m53K/exec";
-
+        
         const perfis = ['Nativos', 'Bilíngues', 'Iniciantes', 'Absolutos'];
         const variaveis = ['Duração', 'Esforço', 'Deslocamento'];
-        
+        let globalDados = [];
+        let participantesUnicos = [];
+        let charts = {};
+
         let mediasReais = {
             'Nativos': { 'Duração': 1, 'Esforço': 1, 'Deslocamento': 1 },
             'Bilíngues': { 'Duração': 1, 'Esforço': 1, 'Deslocamento': 1 },
@@ -137,35 +190,38 @@
             'Absolutos': { 'Duração': 1, 'Esforço': 1, 'Deslocamento': 1 }
         };
 
-        // ── 2. LÓGICA DE EXTRAÇÃO E PROCESSAMENTO (ETL) ──
         async function carregarDados() {
             try {
                 const response = await fetch(API_URL);
-                const dadosBrutos = await response.json();
+                globalDados = await response.json();
                 
-                if(dadosBrutos.length > 0) {
-                    processarMedias(dadosBrutos);
-                    document.getElementById('badgeTotal').innerText = `Dados Reais (N=${dadosBrutos.length / 3})`; // Divide por 3 pois cada participante gera 3 linhas
-                } else {
-                    document.getElementById('loading-text').innerText = "Banco de dados vazio. Aguardando coletas.";
-                    return;
+                if(globalDados.length > 0) {
+                    processarMedias(globalDados);
+                    processarParticipantes(globalDados);
+                    document.getElementById('badgeTotal').innerText = `Dados Reais (N=${participantesUnicos.length})`;
                 }
 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('main-dashboard').style.display = 'block';
-                
                 setModo('individual');
-
             } catch (error) {
-                document.getElementById('loading-text').innerText = "Erro ao conectar com a planilha. Verifique a URL do Script.";
-                console.error(error);
+                document.getElementById('loading-text').innerText = "Erro ao conectar.";
             }
         }
 
+        function processarParticipantes(dados) {
+            const ids = new Set();
+            participantesUnicos = [];
+            dados.forEach(d => {
+                if(!ids.has(d.Sessao)) {
+                    ids.add(d.Sessao);
+                    participantesUnicos.push(d);
+                }
+            });
+        }
+
         function processarMedias(dados) {
-            // Agrupa e soma os valores absolutos do VAS por perfil e variável
             let somas = {}; let contagens = {};
-            
             perfis.forEach(p => { somas[p] = {'Duração':0, 'Esforço':0, 'Deslocamento':0}; contagens[p] = {'Duração':0, 'Esforço':0, 'Deslocamento':0}; });
 
             dados.forEach(linha => {
@@ -180,28 +236,70 @@
                 }
             });
 
-            // Calcula a média e converte em "Pseudo-Expoente" para plotagem da curva (Mapeamento Stevens Visual)
-            // Se a média for 50 (máximo), a curva é reta (1.0). Quanto menor a percepção média, maior a curvatura.
             perfis.forEach(p => {
                 variaveis.forEach(v => {
                     if(contagens[p][v] > 0) {
                         let mediaReal = somas[p][v] / contagens[p][v];
-                        mediaReal = Math.max(mediaReal, 1); // Evita divisão por zero
-                        mediasReais[p][v] = 50 / mediaReal; 
+                        mediasReais[p][v] = 50 / Math.max(mediaReal, 1); 
                     }
                 });
             });
         }
 
-        // ── 3. VISUALIZAÇÃO E GRÁFICOS ──
-        let modoAtual = 'individual'; 
-        let chartInstance = null;
+        // ── DASHBOARD SOCIOLINGUÍSTICO ──
+        function openModal() {
+            document.getElementById('modalStats').style.display = 'flex';
+            renderCharts();
+        }
 
+        function closeModal() {
+            document.getElementById('modalStats').style.display = 'none';
+        }
+
+        function getCounts(key) {
+            return participantesUnicos.reduce((acc, curr) => {
+                const val = curr[key] || "Não inf.";
+                acc[val] = (acc[val] || 0) + 1;
+                return acc;
+            }, {});
+        }
+
+        function renderCharts() {
+            const config = (ctx, type, data, title) => {
+                if(charts[title]) charts[title].destroy();
+                charts[title] = new Chart(ctx, {
+                    type: type,
+                    data: {
+                        labels: Object.keys(data),
+                        datasets: [{ 
+                            data: Object.values(data), 
+                            backgroundColor: ['#3b82f6','#ec4899','#f59e0b','#10b981','#8b5cf6','#ef4444','#60a5fa'],
+                            borderColor: 'transparent'
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { 
+                            title: { display: true, text: title, color: '#f4f4f5', font: { size: 12, weight: '600' } },
+                            legend: { position: 'bottom', labels: { boxWidth: 10, color: '#a1a1aa', font: { size: 10 } } }
+                        }
+                    }
+                });
+            };
+
+            config(document.getElementById('chartIdade'), 'bar', getCounts('Idade'), 'Distribuição de Idade');
+            config(document.getElementById('chartGenero'), 'doughnut', getCounts('Genero'), 'Gênero');
+            config(document.getElementById('chartEscola'), 'bar', getCounts('Escolaridade'), 'Escolaridade');
+            config(document.getElementById('chartLado'), 'doughnut', getCounts('Lateralidade'), 'Lateralidade');
+            config(document.getElementById('chartEstado'), 'bar', getCounts('Estado'), 'Geografia (Estados)');
+        }
+
+        // ── MOTOR DO GRÁFICO PRINCIPAL (ESTÁVEL) ──
+        let modoAtual = 'individual'; let chartInstance = null;
         const paletaPerfis = { 'Nativos': '#3b82f6', 'Bilíngues': '#60a5fa', 'Iniciantes': '#f59e0b', 'Absolutos': '#ef4444' };
         const paletaVariaveis = { 'Duração': '#10b981', 'Esforço': '#ec4899', 'Deslocamento': '#8b5cf6' };
 
         function calcCurva(x, expoente) { return 100 * Math.pow(Math.abs(x) / 50, expoente); }
-
         function gerarDadosLinha(expoente) {
             const dados = [];
             for (let x = -50; x <= 50; x++) dados.push({ x: x, y: calcCurva(x, expoente) });
@@ -212,10 +310,8 @@
             modoAtual = modo;
             document.getElementById('btnIndividual').classList.toggle('active', modo === 'individual');
             document.getElementById('btnIntegrada').classList.toggle('active', modo === 'integrada');
-            
             const select = document.getElementById('selectFiltro');
             select.innerHTML = '';
-            
             if (modo === 'individual') {
                 document.getElementById('labelFiltro').innerText = 'Variável Isolada:';
                 variaveis.forEach(v => select.add(new Option(v, v)));
@@ -227,65 +323,37 @@
             atualizarTabela(document.getElementById('vasSlider').value);
         }
 
-        const pluginLinhaCentral = {
-            id: 'linhaCentral',
-            beforeDraw(chart) {
-                const { ctx, chartArea: { top, bottom }, scales: { x } } = chart;
-                ctx.save();
-                ctx.beginPath();
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([4, 4]);
-                ctx.moveTo(x.getPixelForValue(0), top);
-                ctx.lineTo(x.getPixelForValue(0), bottom);
-                ctx.stroke();
-                ctx.restore();
-            }
-        };
-
         function atualizarGrafico() {
             const selecao = document.getElementById('selectFiltro').value;
             const datasets = [];
-
-            Chart.defaults.font.family = "'Inter', sans-serif";
-            Chart.defaults.color = '#a1a1aa';
-
             if (modoAtual === 'individual') {
                 perfis.forEach(p => {
                     datasets.push({
                         label: p, data: gerarDadosLinha(mediasReais[p][selecao]),
-                        borderColor: paletaPerfis[p], borderWidth: 2, pointRadius: 0, pointHoverRadius: 6, tension: 0.4
+                        borderColor: paletaPerfis[p], borderWidth: 2, pointRadius: 0, tension: 0.4
                     });
                 });
             } else {
                 variaveis.forEach(v => {
                     datasets.push({
                         label: v, data: gerarDadosLinha(mediasReais[selecao][v]),
-                        borderColor: paletaVariaveis[v], borderWidth: 2, pointRadius: 0, pointHoverRadius: 6, tension: 0.4
+                        borderColor: paletaVariaveis[v], borderWidth: 2, pointRadius: 0, tension: 0.4
                     });
                 });
             }
-
-            if (chartInstance) {
-                chartInstance.data.datasets = datasets;
-                chartInstance.update();
-            } else {
+            if (chartInstance) { chartInstance.data.datasets = datasets; chartInstance.update(); } 
+            else {
                 const ctx = document.getElementById('meuGrafico').getContext('2d');
                 chartInstance = new Chart(ctx, {
                     type: 'line', data: { datasets: datasets },
                     options: {
                         responsive: true, maintainAspectRatio: false,
-                        interaction: { mode: 'index', intersect: false },
-                        plugins: {
-                            legend: { position: 'top', labels: { font: { size: 12, weight: '600' }, usePointStyle: true, boxWidth: 8 } },
-                            tooltip: { backgroundColor: '#18181b', titleColor: '#f4f4f5', bodyColor: '#a1a1aa', borderColor: '#27272a', borderWidth: 1, padding: 12, cornerRadius: 4 }
-                        },
+                        plugins: { legend: { position: 'top', labels: { color: '#a1a1aa' } } },
                         scales: {
-                            x: { type: 'linear', min: -50, max: 50, grid: { color: 'rgba(255, 255, 255, 0.03)' }, ticks: { font: { weight: '400' } } },
-                            y: { min: 0, max: 100, grid: { color: 'rgba(255, 255, 255, 0.03)' } }
+                            x: { type: 'linear', min: -50, max: 50, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' } }
                         }
-                    },
-                    plugins: [pluginLinhaCentral]
+                    }
                 });
             }
         }
@@ -294,40 +362,21 @@
             xVal = parseFloat(xVal);
             document.getElementById('valVas').innerText = xVal > 0 ? "+" + xVal : xVal;
             const selecao = document.getElementById('selectFiltro').value;
-
             if (modoAtual === 'individual') {
-                document.getElementById('col1_label').innerText = 'Nativos'; document.getElementById('col1_label').style.color = paletaPerfis['Nativos'];
-                document.getElementById('col2_label').innerText = 'Bilíngues'; document.getElementById('col2_label').style.color = paletaPerfis['Bilíngues'];
-                document.getElementById('col3_label').innerText = 'Iniciantes'; document.getElementById('col3_label').style.color = paletaPerfis['Iniciantes'];
-                document.getElementById('col4_label').style.display = 'table-cell'; document.getElementById('col4_label').innerText = 'Absolutos'; document.getElementById('col4_label').style.color = paletaPerfis['Absolutos'];
-                
                 document.getElementById('val1').innerText = calcCurva(xVal, mediasReais['Nativos'][selecao]).toFixed(1);
                 document.getElementById('val2').innerText = calcCurva(xVal, mediasReais['Bilíngues'][selecao]).toFixed(1);
                 document.getElementById('val3').innerText = calcCurva(xVal, mediasReais['Iniciantes'][selecao]).toFixed(1);
-                document.getElementById('val4').style.display = 'table-cell'; document.getElementById('val4').innerText = calcCurva(xVal, mediasReais['Absolutos'][selecao]).toFixed(1);
+                document.getElementById('val4').innerText = calcCurva(xVal, mediasReais['Absolutos'][selecao]).toFixed(1);
             } else {
-                document.getElementById('col1_label').innerText = 'Duração'; document.getElementById('col1_label').style.color = paletaVariaveis['Duração'];
-                document.getElementById('col2_label').innerText = 'Esforço'; document.getElementById('col2_label').style.color = paletaVariaveis['Esforço'];
-                document.getElementById('col3_label').innerText = 'Deslocamento'; document.getElementById('col3_label').style.color = paletaVariaveis['Deslocamento'];
-                document.getElementById('col4_label').style.display = 'none';
-                
                 document.getElementById('val1').innerText = calcCurva(xVal, mediasReais[selecao]['Duração']).toFixed(1);
                 document.getElementById('val2').innerText = calcCurva(xVal, mediasReais[selecao]['Esforço']).toFixed(1);
                 document.getElementById('val3').innerText = calcCurva(xVal, mediasReais[selecao]['Deslocamento']).toFixed(1);
-                document.getElementById('val4').style.display = 'none';
             }
         }
 
-        document.getElementById('vasSlider').addEventListener('input', function() {
-            atualizarTabela(this.value);
-            const index = parseFloat(this.value) + 50; 
-            chartInstance.setActiveElements([{datasetIndex: 0, index: index}]);
-            chartInstance.update();
-        });
-
-        // Inicia carregamento dos dados da nuvem
+        document.getElementById('vasSlider').addEventListener('input', function() { atualizarTabela(this.value); });
+        window.onclick = function(event) { if (event.target == document.getElementById('modalStats')) closeModal(); }
         window.onload = carregarDados;
-
     </script>
 </body>
 </html>
