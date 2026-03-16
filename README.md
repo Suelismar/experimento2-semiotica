@@ -289,5 +289,4 @@ O objetivo central de utilizarmos este gráfico em nossa análise é verificar s
 1. **Nativos (NAT):** Esperamos observar curvas mais "ascendentes" ($n$ mais alto), indicando que o conhecimento profundo da língua permite ao surdo perceber microvariações de tensão que o leigo ignora.
 2. **Absolutos (ABS):** Atuam como nosso grupo de controle. Suas curvas tendem a ser mais lineares ou atenuadas, baseando-se em uma percepção intuitiva da força física (pantomímica), sem o filtro da gramática poética da Libras.
 
-Ao cruzarmos essas curvas no **Modo Comparar Perfis**, conseguimos provar se a "tensão semiótica" é um traço biológico universal ou um traço cultural/linguístico adquirido.
 
