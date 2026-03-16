@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Laboratório de Semiótica - Experimento de Magnitude</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── 1. MINIMALISMO EDITORIAL (RESET E BASE) ── */
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #09090b; font-family: 'Inter', sans-serif; color: #f4f4f5; overflow: hidden; }
+    
+    /* ── 2. BLOQUEIO DE DISPOSITIVOS MÓVEIS ── */
+    #bloqueio-mobile { display: none; position: fixed; inset: 0; background-color: #09090b; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
+    #bloqueio-mobile h2 { font-weight: 600; color: #ef4444; margin-bottom: 1rem; }
+    #bloqueio-mobile p { color: #a1a1aa; max-width: 400px; line-height: 1.5; }
+    
+    @media (max-width: 1023px) {
+      #canvas-principal { display: none !important; }
+      #bloqueio-mobile { display: flex; }
+    }
+
+    /* ── 3. LAYOUT GERAL ── */
+    #canvas-principal { position: relative; height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .painel { position: relative; width: 100%; max-width: 1250px; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 1; transition: opacity 0.4s ease; padding: 0 20px; box-sizing: border-box; }
+    
+    /* ── BARRA DE PROGRESSO INVISÍVEL ── */
+    #barra-progresso { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background-color: #18181b; z-index: 100; display: none; }
+    #preenchimento-progresso { height: 100%; width: 0%; background-color: #52525b; transition: width 0.5s ease; }
+
+    /* ── 4. TELAS DE TEXTO (TCLE E CADASTRO) ── */
+    .caixa-dialogo { background: #09090b; padding: 40px; border: 1px solid #27272a; border-radius: 8px; max-width: 650px; width: 100%; text-align: left; max-height: 90vh; overflow-y: auto; }
+    .caixa-dialogo::-webkit-scrollbar { width: 6px; }
+    .caixa-dialogo::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+    .caixa-dialogo h2 { font-size: 1.5rem; font-weight: 600; margin-top: 0; border-bottom: 1px solid #27272a; padding-bottom: 15px; margin-bottom: 25px; }
+    
+    .tcle-texto { font-size: 0.85rem; color: #a1a1aa; line-height: 1.6; margin-bottom: 20px; }
+    .checkbox-label { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; cursor: pointer; color: #e4e4e7; margin-bottom: 20px; }
+    .checkbox-label input { width: 18px; height: 18px; cursor: pointer; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; color: #a1a1aa; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #27272a; background: #18181b; color: #f4f4f5; font-size: 0.95rem; cursor: pointer; outline: none; box-sizing: border-box; }
+    
+    .btn-acao { background-color: #fafafa; color: #09090b; border: none; padding: 14px 24px; font-size: 1rem; font-weight: 600; border-radius: 6px; cursor: pointer; width: 100%; transition: background 0.2s; margin-top: 10px; }
+    .btn-acao:hover { background-color: #e4e4e7; }
+    .btn-acao:disabled { background-color: #27272a; color: #52525b; cursor: not-allowed; }
+
+    /* ── 5. TELA DE TESTE (CLEAN UI) ── */
+    #tela-teste { display: none; }
+    .question { font-size: 1.7rem; font-weight: 400; text-align: center; line-height: 1.4; margin-bottom: 3rem; max-width: 900px; min-height: 80px; }
+    
+    /* Blocos de Vídeo (1200px de largura total) */
+    .video-row { display: flex; justify-content: space-between; gap: 40px; width: 100%; max-width: 1200px; margin-bottom: 3rem; }
+    .video-block { width: 580px; height: 326px; background: transparent; position: relative; display: flex; justify-content: center; align-items: center; transition: all 0.3s ease; box-sizing: border-box; }
+    .debug-txt { position: absolute; font-size: 1rem; font-weight: 600; color: #71717a; z-index: 2; }
+    video { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; z-index: 1; transition: opacity 0.3s ease; }
+    
+    /* Estados de Seleção Neutros e Elegantes */
+    .selecionado { box-shadow: 0 0 0 2px #fafafa; border-radius: 4px; }
+    .apagado { opacity: 0.3; }
+
+    /* Escala VAS Minimalista */
+    .vas-area { width: 100%; max-width: 1200px; position: relative; margin-bottom: 1rem; }
+    input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; cursor: grab; z-index: 5; position: relative; outline: none; }
+    input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; background: #27272a; }
+    .vas-area::before { content: ''; position: absolute; top: -5px; height: 12px; left: 50%; width: 1px; background: #52525b; transform: translateX(-50%); } 
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #fafafa; margin-top: -11px; transition: transform 0.1s; border: none; }
+    input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); cursor: grabbing; }
+    .vas-labels { display: flex; justify-content: space-between; margin-top: 1rem; font-size: 0.8rem; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Botão de Avanço do Treino */
+    #btn-treino-ok { display: none; margin-top: 2rem; width: 300px; background-color: #10b981; color: white; }
+    #btn-treino-ok:hover { background-color: #059669; }
+
+    /* Animações */
+    #aviso-erro { color: #ef4444; font-size: 0.85rem; opacity: 0; text-align: center; position: absolute; bottom: -25px; width: 100%; transition: opacity 0.3s; }
+    .shake { animation: shake 0.4s both; }
+    @keyframes shake { 20%, 80% { transform: translateX(2px); } 40%, 60% { transform: translateX(-4px); } }
+    
+    #tela-conclusao { display: none; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div id="bloqueio-mobile">
+    <h2>Acesso Incompatível</h2>
+    <p>Para garantir o rigor visual deste experimento, é obrigatório o uso de um computador desktop ou notebook. Por favor, acesse o link em um dispositivo de tela maior.</p>
+  </div>
+
+  <section id="canvas-principal">
+    
+    <div id="barra-progresso"><div id="preenchimento-progresso"></div></div>
+
+    <div class="painel" id="tela-tcle">
+      <div class="caixa-dialogo">
+        <h2>Termo de Consentimento</h2>
+        <div class="tcle-texto">
+          Você está sendo convidado(a) a participar de uma pesquisa acadêmica (Nível Doutorado) sobre a Semiótica da Libras. <br><br>
+          <strong>Objetivo:</strong> Avaliar a percepção visual em vídeos de sinalização.<br>
+          <strong>Procedimento:</strong> Você assistirá a vídeos curtos em loop e usará uma barra deslizante para indicar sua percepção.<br>
+          <strong>Riscos e Benefícios:</strong> Não há riscos físicos. Você contribuirá para o avanço da pesquisa linguística no Brasil.<br>
+          <strong>Privacidade:</strong> Seus dados são anônimos e confidenciais, utilizados apenas para fins estatísticos.
+        </div>
+        <label class="checkbox-label">
+          <input type="checkbox" id="chk-aceite" onchange="liberarTCLE()"> 
+          Declaro que li e aceito participar voluntariamente.
+        </label>
+        <button class="btn-acao" id="btn-tcle" onclick="irParaCadastro()" disabled>Continuar</button>
+      </div>
+    </div>
+
+    <div class="painel" id="tela-cadastro" style="display: none;">
+      <div class="caixa-dialogo">
+        <h2>Perfil Sociolinguístico</h2>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Idade</label>
+            <select id="q-idade" onchange="validaForm()">
+              <option value="" disabled selected>Selecione...</option>
+              <option value="18-25">18 a 25 anos</option>
+              <option value="26-35">26 a 35 anos</option>
+              <option value="36-45">36 a 45 anos</option>
+              <option value="46-55">46 a 55 anos</option>
+              <option value="56+">56 anos ou mais</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Gênero</label>
+            <select id="q-genero" onchange="validaForm()">
+              <option value="" disabled selected>Selecione...</option>
+              <option value="Feminino">Feminino</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Não-binário">Não-binário</option>
+              <option value="Prefiro não informar">Prefiro não informar</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Escolaridade</label>
+            <select id="q-escolaridade" onchange="validaForm()">
+              <option value="" disabled selected>Selecione...</option>
+              <option value="Ensino Médio">Ensino Médio</option>
+              <option value="Graduação">Graduação</option>
+              <option value="Pós-graduação">Pós-graduação</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Mão Dominante</label>
+            <select id="q-lateralidade" onchange="validaForm()">
+              <option value="" disabled selected>Selecione...</option>
+              <option value="Destro">Destro (Direita)</option>
+              <option value="Canhoto">Canhoto (Esquerda)</option>
+              <option value="Ambidestro">Ambidestro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Estado (Onde mora atualmente)</label>
+          <select id="q-estado" onchange="validaForm()">
+            <option value="" disabled selected>Selecione o Estado...</option>
+            <option value="AC">Acre</option><option value="AL">Alagoas</option><option value="AP">Amapá</option><option value="AM">Amazonas</option><option value="BA">Bahia</option><option value="CE">Ceará</option><option value="DF">Distrito Federal</option><option value="ES">Espírito Santo</option><option value="GO">Goiás</option><option value="MA">Maranhão</option><option value="MT">Mato Grosso</option><option value="MS">Mato Grosso do Sul</option><option value="MG">Minas Gerais</option><option value="PA">Pará</option><option value="PB">Paraíba</option><option value="PR">Paraná</option><option value="PE">Pernambuco</option><option value="PI">Piauí</option><option value="RJ">Rio de Janeiro</option><option value="RN">Rio Grande do Norte</option><option value="RS">Rio Grande do Sul</option><option value="RO">Rondônia</option><option value="RR">Roraima</option><option value="SC">Santa Catarina</option><option value="SP">São Paulo</option><option value="SE">Sergipe</option><option value="TO">Tocantins</option>
+          </select>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Condição Auditiva</label>
+            <select id="q-audiologia" onchange="adaptarOpcoes()">
+              <option value="" disabled selected>Selecione...</option>
+              <option value="surdo">Sou Surdo(a)</option>
+              <option value="ouvinte">Sou Ouvinte</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Relação com a Libras</label>
+            <select id="q-fluencia" disabled onchange="validaForm()">
+              <option value="" disabled selected>Aguardando...</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-acao" id="btn-inicio" onclick="iniciar()" disabled>Iniciar Experimento</button>
+      </div>
+    </div>
+
+    <div class="painel" id="tela-teste">
+      <h1 class="question" id="texto-pergunta"></h1>
+      <div class="video-row">
+        <div class="video-block" id="box-a">
+          <div class="debug-txt" id="debug-a"></div>
+          <video id="vid-a" autoplay loop muted playsinline></video>
+        </div>
+        <div class="video-block" id="box-b">
+          <div class="debug-txt" id="debug-b"></div>
+          <video id="vid-b" autoplay loop muted playsinline></video>
+        </div>
+      </div>
+      <div class="vas-area" id="box-vas">
+        <input type="range" min="-50" max="50" value="0" id="slider-vas" oninput="feedbackVisual()">
+        <div class="vas-labels">
+          <span id="lb-esq">Âncora A</span>
+          <span id="lb-dir">Âncora B</span>
+        </div>
+        <div id="aviso-erro">O valor neutro (0) não é permitido no teste real.</div>
+      </div>
+      <button class="btn-acao" id="btn-treino-ok" onclick="iniciarTesteReal()">Entendi, iniciar teste oficial</button>
+    </div>
+
+    <div class="painel" id="tela-conclusao">
+      <div class="caixa-dialogo" style="text-align: center; border: none; padding: 0;">
+        <h2 style="border:none; color:#fafafa; font-size: 2.2rem; margin-bottom: 15px;">Experimento Concluído</h2>
+        <p style="color: #a1a1aa; font-size: 1.1rem; max-width: 500px; margin: 0 auto; line-height: 1.5;">Suas respostas foram registradas com segurança. Agradecemos imensamente a sua contribuição metodológica.</p>
+      </div>
+    </div>
+
+  </section>
+
+  <script>
+    // ── CONFIGURAÇÕES GERAIS E BANCO DE DADOS ──
+    const videoTreinoA = "videos/treino_a.mp4"; 
+    const videoTreinoB = "videos/treino_b.mp4";
+
+    let corpus = [
+      { id: "CSA", vEstetico: "videos/csa_est.mp4", vUtilitario: "videos/csa_util.mp4" },
+      { id: "VV",  vEstetico: "videos/vv_est.mp4",  vUtilitario: "videos/vv_util.mp4" },
+      { id: "AC",  vEstetico: "videos/ac_est.mp4",  vUtilitario: "videos/ac_util.mp4" }
+    ];
+
+    const varsOrdem = ["esforco", "deslocamento", "duracao"];
+    const banco = {
+      esforco: [
+        { id: "E1", txt: "Qual execução transmite maior tensão muscular e força física?", esq: "Mais Forte", dir: "Mais Forte" },
+        { id: "E2", txt: "Qual sinalização demonstra um gasto de energia visivelmente maior?", esq: "Mais Energia", dir: "Mais Energia" },
+        { id: "E3", txt: "Em qual performance o esforço aplicado parece mais intenso?", esq: "Mais Intenso", dir: "Mais Intenso" }
+      ],
+      deslocamento: [
+        { id: "S1", txt: "Qual sinalização ocupa uma área maior no espaço à frente do corpo?", esq: "Maior Área", dir: "Maior Área" },
+        { id: "S2", txt: "Em qual das versões os movimentos das mãos são mais amplos?", esq: "Mais Amplo", dir: "Mais Amplo" },
+        { id: "S3", txt: "Qual execução demonstra maior amplitude no uso do espaço físico?", esq: "Mais Amplitude", dir: "Mais Amplitude" }
+      ],
+      duracao: [
+        { id: "D1", txt: "Qual das execuções possui um ritmo mais desacelerado e longo?", esq: "Mais Longo", dir: "Mais Longo" },
+        { id: "D2", txt: "Qual versão parece levar mais tempo para completar o movimento?", esq: "Mais Tempo", dir: "Mais Tempo" },
+        { id: "D3", txt: "Em qual sinalização o tempo de execução parece mais 'esticado'?", esq: "Mais Esticado", dir: "Mais Esticado" }
+      ]
+    };
+
+    // Variáveis Globais de Controle e Perfil
+    let pIdade = "", pGenero = "", pEscola = "", pLado = "", pEstado = "", pAud = "", pSigla = "", pNome = "";
+    let sID = "", iPoema = 0, iVar = 0, invertido = false;
+    let dadosPoema = { poema: "", esforco: 0, id_e: "", deslocamento: 0, id_s: "", duracao: 0, id_d: "" };
+    let faseAtual = "tcle"; 
+
+    const slider = document.getElementById('slider-vas');
+    const erroMsg = document.getElementById('aviso-erro');
+
+    // ── FUNÇÕES DE FLUXO E CADASTRO ──
+    function liberarTCLE() { document.getElementById('btn-tcle').disabled = !document.getElementById('chk-aceite').checked; }
+    
+    function irParaCadastro() {
+      document.getElementById('tela-tcle').style.display = 'none';
+      document.getElementById('tela-cadastro').style.display = 'flex';
+      faseAtual = "cadastro";
+    }
+
+    function adaptarOpcoes() {
+      const aud = document.getElementById('q-audiologia').value;
+      const fl = document.getElementById('q-fluencia');
+      fl.innerHTML = "<option value='' disabled selected>Selecione a fluência...</option>"; 
+      fl.disabled = false;
+      
+      if (aud === "surdo") {
+        fl.add(new Option("Nativo / Libras como L1", "nativo"));
+        fl.add(new Option("Fluente (L2 precoce)", "bilingue"));
+        fl.add(new Option("Aprendizado na vida adulta", "iniciante"));
+      } else {
+        fl.add(new Option("Intérprete / Professor / Fluente", "bilingue"));
+        fl.add(new Option("Estudante (Básico/Interm.)", "iniciante"));
+        fl.add(new Option("Leigo Absoluto", "nenhum"));
+      }
+      validaForm();
+    }
+
+    function validaForm() {
+      const v = id => document.getElementById(id).value;
+      if (v('q-idade') && v('q-genero') && v('q-escolaridade') && v('q-lateralidade') && v('q-estado') && v('q-audiologia') && v('q-fluencia')) {
+        document.getElementById('btn-inicio').disabled = false;
+      } else {
+        document.getElementById('btn-inicio').disabled = true;
+      }
+    }
+
+    function shuffle(a) { return a.sort(() => Math.random() - 0.5); }
+
+    function iniciar() {
+      // 1. Extrai dados sociodemográficos
+      pIdade = document.getElementById('q-idade').value;
+      pGenero = document.getElementById('q-genero').value;
+      pEscola = document.getElementById('q-escolaridade').value;
+      pLado = document.getElementById('q-lateralidade').value;
+      pEstado = document.getElementById('q-estado').value;
+      
+      const selectAud = document.getElementById('q-audiologia');
+      pAud = selectAud.options[selectAud.selectedIndex].text;
+      
+      const flVal = document.getElementById('q-fluencia').value;
+      const m = { "nativo":["NAT","Nativos"], "bilingue":["BIL","Bilíngues"], "iniciante":["INI","Iniciantes"], "nenhum":["ABS","Absolutos"] };
+      [pSigla, pNome] = m[flVal];
+      
+      // Gera ID Único da Sessão
+      sID = `${pSigla}-${Math.floor(10000 + Math.random() * 89999)}`;
+
+      if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen().catch(e => console.log("Fullscreen negado.")); }
+      
+      document.getElementById('tela-cadastro').style.display = 'none';
+      document.getElementById('tela-teste').style.display = 'flex';
+      
+      iniciarTreino();
+    }
+
+    // ── FASE DE TREINAMENTO ──
+    function iniciarTreino() {
+      faseAtual = "treino";
+      document.getElementById('texto-pergunta').innerText = "TREINAMENTO: Arraste o cursor em direção ao vídeo que parece mais intenso. Note que o vídeo selecionado fica destacado.";
+      document.getElementById('lb-esq').innerText = "Mais Intenso";
+      document.getElementById('lb-dir').innerText = "Mais Intenso";
+      
+      document.getElementById('vid-a').src = videoTreinoA;
+      document.getElementById('vid-b').src = videoTreinoB;
+      
+      const dbgA = document.getElementById('debug-a'), dbgB = document.getElementById('debug-b');
+      dbgA.innerText = "TREINO A"; dbgB.innerText = "TREINO B";
+      document.getElementById('vid-a').onerror = () => { dbgA.style.display = 'block'; };
+      document.getElementById('vid-b').onerror = () => { dbgB.style.display = 'block'; };
+    }
+
+    function iniciarTesteReal() {
+      faseAtual = "teste";
+      corpus = shuffle(corpus);
+      document.getElementById('btn-treino-ok').style.display = 'none';
+      document.getElementById('barra-progresso').style.display = 'block';
+      
+      slider.value = 0; feedbackVisual();
+      
+      const t = document.getElementById('tela-teste');
+      t.style.opacity = 0;
+      setTimeout(() => { proxima(); t.style.opacity = 1; }, 400);
+    }
+
+    // ── ESTÉTICA DA SELEÇÃO NEUTRA ──
+    function feedbackVisual() {
+      const v = parseInt(slider.value);
+      if (v !== 0) erroMsg.style.opacity = 0;
+      
+      const boxA = document.getElementById('box-a'), boxB = document.getElementById('box-b');
+
+      if (v < -5) {
+        boxA.classList.add('selecionado'); boxA.classList.remove('apagado');
+        boxB.classList.add('apagado'); boxB.classList.remove('selecionado');
+      } else if (v > 5) {
+        boxB.classList.add('selecionado'); boxB.classList.remove('apagado');
+        boxA.classList.add('apagado'); boxA.classList.remove('selecionado');
+      } else {
+        boxA.classList.remove('selecionado', 'apagado');
+        boxB.classList.remove('selecionado', 'apagado');
+      }
+
+      if (faseAtual === "treino" && Math.abs(v) > 5) {
+        document.getElementById('btn-treino-ok').style.display = 'block';
+      }
+    }
+
+    // ── FASE DE TESTE OFICIAL ──
+    function proxima() {
+      const cat = varsOrdem[iVar];
+      const q = banco[cat][Math.floor(Math.random() * 3)];
+      const poemaAtual = corpus[iPoema];
+      
+      document.getElementById('texto-pergunta').innerText = q.txt;
+      document.getElementById('lb-esq').innerText = q.esq;
+      document.getElementById('lb-dir').innerText = q.dir;
+      
+      const etapaAtual = (iPoema * 3) + (iVar + 1);
+      document.getElementById('preenchimento-progresso').style.width = (((etapaAtual - 1) / 9) * 100) + '%';
+      
+      invertido = Math.random() > 0.5;
+      
+      const vidA = document.getElementById('vid-a'), vidB = document.getElementById('vid-b');
+      const dbgA = document.getElementById('debug-a'), dbgB = document.getElementById('debug-b');
+
+      if (invertido) {
+        vidA.src = poemaAtual.vEstetico; vidB.src = poemaAtual.vUtilitario;
+        dbgA.innerText = "ESTÉTICO"; dbgB.innerText = "UTILITÁRIO";
+      } else {
+        vidA.src = poemaAtual.vUtilitario; vidB.src = poemaAtual.vEstetico;
+        dbgA.innerText = "UTILITÁRIO"; dbgB.innerText = "ESTÉTICO";
+      }
+
+      vidA.onloadeddata = () => { dbgA.style.display = 'none'; };
+      vidA.onerror = () => { dbgA.style.display = 'block'; };
+      vidB.onloadeddata = () => { dbgB.style.display = 'none'; };
+      vidB.onerror = () => { dbgB.style.display = 'block'; };
+
+      if (cat === "esforco") dadosPoema.id_e = q.id;
+      if (cat === "deslocamento") dadosPoema.id_s = q.id;
+      if (cat === "duracao") dadosPoema.id_d = q.id;
+      
+      dadosPoema.poema = poemaAtual.id;
+    }
+
+    slider.addEventListener('change', function() {
+      if (faseAtual === "treino") return; 
+
+      const vRaw = parseInt(this.value);
+      if (vRaw === 0) {
+        erroMsg.style.opacity = 1;
+        document.getElementById('box-vas').classList.add("shake");
+        setTimeout(() => document.getElementById('box-vas').classList.remove("shake"), 400);
+        return;
+      }
+
+      const vFinal = invertido ? (vRaw * -1) : vRaw;
+      if (iVar === 0) dadosPoema.esforco = vFinal;
+      if (iVar === 1) dadosPoema.deslocamento = vFinal;
+      if (iVar === 2) dadosPoema.duracao = vFinal;
+
+      iVar++;
+
+      if (iVar === 3) { enviar(); iVar = 0; iPoema++; }
+
+      if (iPoema < 3) {
+        const t = document.getElementById('tela-teste');
+        t.style.opacity = 0;
+        setTimeout(() => { slider.value = 0; feedbackVisual(); proxima(); t.style.opacity = 1; }, 400);
+      } else {
+        document.getElementById('preenchimento-progresso').style.width = '100%';
+        document.getElementById('tela-teste').style.display = 'none';
+        document.getElementById('barra-progresso').style.display = 'none';
+        document.getElementById('tela-conclusao').style.display = 'flex';
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    });
+
+    // ── ENVIO DOS DADOS (PAYLOAD COMPLETO 16 COLUNAS) ──
+    function enviar() {
+      const payload = {
+        Sessao: sID, 
+        Audiologia: pAud,
+        Perfil: pNome, 
+        Idade: pIdade,
+        Genero: pGenero,
+        Escolaridade: pEscola,
+        Lateralidade: pLado,
+        Estado: pEstado,
+        Poema: dadosPoema.poema,
+        Esforco: dadosPoema.esforco, 
+        ID_E: dadosPoema.id_e,
+        Deslocamento: dadosPoema.deslocamento, 
+        ID_S: dadosPoema.id_s,
+        Duracao: dadosPoema.duracao, 
+        ID_D: dadosPoema.id_d
+      };
+
+      // ── INSIRA O LINK DO SEU GOOGLE APPS SCRIPT ABAIXO ──
+      fetch('https://script.google.com/macros/s/AKfycbzSQBaJh6_t-po19acKiCeBe-cTsrJumDWDHQL87naHMdDuGfZGSOXxC7stg1wt7D6i/exec', {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      dadosPoema = { poema: "", esforco: 0, id_e: "", deslocamento: 0, id_s: "", duracao: 0, id_d: "" };
+    }
+  </script>
+</body>
+</html>
