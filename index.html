@@ -221,10 +221,26 @@
     const videoTreinoA = "videos/treino_a.mp4"; 
     const videoTreinoB = "videos/treino_b.mp4";
 
+    // ── ESTRUTURA ATUALIZADA (3 PARES DE VÍDEOS POR POEMA) ──
     let corpus = [
-      { id: "CSA", vEstetico: "videos/csa_est.mp4", vUtilitario: "videos/csa_util.mp4" },
-      { id: "VV",  vEstetico: "videos/vv_est.mp4",  vUtilitario: "videos/vv_util.mp4" },
-      { id: "AC",  vEstetico: "videos/ac_est.mp4",  vUtilitario: "videos/ac_util.mp4" }
+      { 
+        id: "CSA", 
+        esforco: { vEstetico: "videos/csa_esf_est.mp4", vUtilitario: "videos/csa_esf_util.mp4" },
+        deslocamento: { vEstetico: "videos/csa_des_est.mp4", vUtilitario: "videos/csa_des_util.mp4" },
+        duracao: { vEstetico: "videos/csa_dur_est.mp4", vUtilitario: "videos/csa_dur_util.mp4" }
+      },
+      { 
+        id: "VV",  
+        esforco: { vEstetico: "videos/vv_esf_est.mp4", vUtilitario: "videos/vv_esf_util.mp4" },
+        deslocamento: { vEstetico: "videos/vv_des_est.mp4", vUtilitario: "videos/vv_des_util.mp4" },
+        duracao: { vEstetico: "videos/vv_dur_est.mp4", vUtilitario: "videos/vv_dur_util.mp4" }
+      },
+      { 
+        id: "AC",  
+        esforco: { vEstetico: "videos/ac_esf_est.mp4", vUtilitario: "videos/ac_esf_util.mp4" },
+        deslocamento: { vEstetico: "videos/ac_des_est.mp4", vUtilitario: "videos/ac_des_util.mp4" },
+        duracao: { vEstetico: "videos/ac_dur_est.mp4", vUtilitario: "videos/ac_dur_util.mp4" }
+      }
     ];
 
     const varsOrdem = ["esforco", "deslocamento", "duracao"];
@@ -294,7 +310,6 @@
     function shuffle(a) { return a.sort(() => Math.random() - 0.5); }
 
     function iniciar() {
-      // 1. Extrai dados sociodemográficos
       pIdade = document.getElementById('q-idade').value;
       pGenero = document.getElementById('q-genero').value;
       pEscola = document.getElementById('q-escolaridade').value;
@@ -308,7 +323,6 @@
       const m = { "nativo":["NAT","Nativos"], "bilingue":["BIL","Bilíngues"], "iniciante":["INI","Iniciantes"], "nenhum":["ABS","Absolutos"] };
       [pSigla, pNome] = m[flVal];
       
-      // Gera ID Único da Sessão
       sID = `${pSigla}-${Math.floor(10000 + Math.random() * 89999)}`;
 
       if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen().catch(e => console.log("Fullscreen negado.")); }
@@ -373,9 +387,11 @@
 
     // ── FASE DE TESTE OFICIAL ──
     function proxima() {
-      const cat = varsOrdem[iVar];
+      const cat = varsOrdem[iVar]; // Vai ser "esforco", "deslocamento" ou "duracao"
       const q = banco[cat][Math.floor(Math.random() * 3)];
+      
       const poemaAtual = corpus[iPoema];
+      const parDeVideos = poemaAtual[cat]; // <-- AGORA PUXA O PAR ESPECÍFICO DA DIMENSÃO
       
       document.getElementById('texto-pergunta').innerText = q.txt;
       document.getElementById('lb-esq').innerText = q.esq;
@@ -389,11 +405,12 @@
       const vidA = document.getElementById('vid-a'), vidB = document.getElementById('vid-b');
       const dbgA = document.getElementById('debug-a'), dbgB = document.getElementById('debug-b');
 
+      // Aplica a inversão randômica usando os vídeos dimensionais específicos
       if (invertido) {
-        vidA.src = poemaAtual.vEstetico; vidB.src = poemaAtual.vUtilitario;
+        vidA.src = parDeVideos.vEstetico; vidB.src = parDeVideos.vUtilitario;
         dbgA.innerText = "ESTÉTICO"; dbgB.innerText = "UTILITÁRIO";
       } else {
-        vidA.src = poemaAtual.vUtilitario; vidB.src = poemaAtual.vEstetico;
+        vidA.src = parDeVideos.vUtilitario; vidB.src = parDeVideos.vEstetico;
         dbgA.innerText = "UTILITÁRIO"; dbgB.innerText = "ESTÉTICO";
       }
 
@@ -463,7 +480,7 @@
       };
 
       // ── INSIRA O LINK DO SEU GOOGLE APPS SCRIPT ABAIXO ──
-      fetch('https://script.google.com/macros/s/AKfycbzSQBaJh6_t-po19acKiCeBe-cTsrJumDWDHQL87naHMdDuGfZGSOXxC7stg1wt7D6i/exec', {
+      fetch('https://script.google.com/macros/s/AKfycbyAqlHbm4p8K7rme7cz_5RQjxc21GeQ3EsGXYL_mB7v7S5qrUi57YspXMuiT-M1m53K/exec', {
         method: 'POST', mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
