@@ -258,3 +258,36 @@ Utilizamos o **slider da Escala VAS Virtual** para simular julgamentos e observa
 Nosso pacote está completo: Interface de Coleta, Banco de Dados e Dashboard de Processamento em Tempo Real. Estamos prontos para avançar!
 
 ---
+
+# 📈 INTERPRETAÇÃO DO DASHBOARD
+
+O gráfico apresentado em nosso painel de visualização é uma adaptação experimental do **Modelo de Quadrado em Pêndulo de Matte**. Utilizamos a **Lei de Potência de Stevens** ($S = kI^n$) como o motor matemático para descrever como a tensão semiótica é percebida pelos diferentes perfis de informantes.
+### 1. Correspondência de Eixos (Matte & Stevens)
+
+Para que os dados fossem processados pelo dashboard, estabelecemos uma correlação direta entre as categorias da semiótica tensiva e as variáveis psicofísicas:
+
+- **Eixo X (Abscissa) | Extensão (O "Quanto"):** Representa a grandeza física do estímulo (Duração, Deslocamento e Esforço). No gráfico, este eixo varia de 0 a 50, correspondendo à distância absoluta do marco zero na escala VAS.
+- **Eixo Y (Ordenada) | Intensidade (O "Como"):** Representa a magnitude da sensação percebida pelo observador. É a dimensão do sensível, traduzida em uma escala de impacto perceptivo de 0 a 100%.
+### 2. Dinâmica do Pêndulo e a Curvatura ($n$)
+
+A forma da curva gerada pelo nosso sistema revela em qual regime tensivo a percepção do participante se encontra, simulando a oscilação do pêndulo de Matte:
+
+- **Regime de Ascendência (Curva Convexa / $n > 1$):**
+    - **Interpretação:** Um pequeno incremento na extensão física (Eixo X) gera um salto desproporcional na intensidade percebida (Eixo Y).
+    - **Semiótica:** Corresponde ao polo da **Surpresa** e do acontecimento estético. O sinalizante "gasta" pouco movimento para gerar muito sentido de tensão. É a marca da execução poética/estética em Libras.
+
+- **Regime de Decidência ou Atenuação (Curva Côncava / $n < 1$):**
+    - **Interpretação:** É necessário um grande aumento na extensão física para que o observador note um aumento sutil na intensidade.
+    - **Semiótica:** Corresponde ao polo da **Estasia** ou da sinalização utilitária. A percepção é amortecida, e o movimento torna-se previsível, inteligível e focado na função referencial, perdendo o impacto sensível.
+
+- **Equilíbrio Linear ($n \approx 1$):**
+    - Indica uma percepção puramente proporcional, onde o sensível e o inteligível caminham em simetria técnica.
+### 3. Análise Comparativa dos Perfis
+
+O objetivo central de utilizarmos este gráfico em nossa análise é verificar se o **domínio linguístico** altera a posição do pêndulo semiótico:
+
+1. **Nativos (NAT):** Esperamos observar curvas mais "ascendentes" ($n$ mais alto), indicando que o conhecimento profundo da língua permite ao surdo perceber microvariações de tensão que o leigo ignora.
+2. **Absolutos (ABS):** Atuam como nosso grupo de controle. Suas curvas tendem a ser mais lineares ou atenuadas, baseando-se em uma percepção intuitiva da força física (pantomímica), sem o filtro da gramática poética da Libras.
+
+Ao cruzarmos essas curvas no **Modo Comparar Perfis**, conseguimos provar se a "tensão semiótica" é um traço biológico universal ou um traço cultural/linguístico adquirido.
+
